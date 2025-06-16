@@ -9,10 +9,9 @@ Original file is located at
 
 import requests
 import pandas as pd
-import tkinter as tk
-from tkinter import ttk, messagebox
+import streamlit as st
 
-# 気象庁APIのエリアコード（例: 東京, 大阪, 名古屋）
+# 気象庁APIのエリアコード
 area_codes = {
     "東京": "130000",
     "大阪": "270000",
@@ -33,33 +32,22 @@ def get_weather_data(area_code):
 
     return pd.DataFrame(weather_data)
 
-# GUI作成
-root = tk.Tk()
-root.title("地域選択付き天気フィルターアプリ")
-root.geometry("300x200")
+# Streamlit UI
+st.title("地域選択付き天気フィルターアプリ")
 
-# 地域選択ドロップダウン
-selected_area = tk.StringVar()
-selected_area.set("東京")  # 初期値
-area_menu = ttk.Combobox(root, textvariable=selected_area, values=list(area_codes.keys()))
-area_menu.pack(pady=5)
+# 地域選択
+selected_area = st.selectbox("地域を選択してください", list(area_codes.keys()))
 
-# 天気フィルター関数
-def filter_weather(condition):
-    area_code = area_codes.get(selected_area.get(), "130000")  # デフォルトは東京
-    df = get_weather_data(area_code)
-    filtered_days = df[df["天気"].str.contains(condition)]["日付"].tolist()
+# 天気データ取得
+df = get_weather_data(area_codes[selected_area])
 
-    if filtered_days:
-        messagebox.showinfo(f"{condition}の日", "\n".join(filtered_days))
-    else:
-        messagebox.showinfo(f"{condition}の日", "該当する日がありません。")
+# フィルター機能
+if st.button("晴れの日"):
+    st.write(df[df["天気"].str.contains("晴れ")]["日付"].tolist())
 
-# ボタン作成
-tk.Button(root, text="晴れの日", command=lambda: filter_weather("晴れ")).pack(pady=5)
-tk.Button(root, text="雨の日", command=lambda: filter_weather("雨")).pack(pady=5)
-tk.Button(root, text="曇りの日", command=lambda: filter_weather("曇り")).pack(pady=5)
+if st.button("雨の日"):
+    st.write(df[df["天気"].str.contains("雨")]["日付"].tolist())
 
-# GUI実行
-root.mainloop()
+if st.button("曇りの日"):
+    st.write(df[df["天気"].str.contains("曇り")]["日付"].tolist())
 
